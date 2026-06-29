@@ -8,11 +8,12 @@ import (
 )
 
 type Config struct {
-	MongoURI  string
-	DBName    string
-	JWTSecret string
-	JWTExpiry time.Duration
-	Port      string
+	MongoURI       string
+	DBName         string
+	JWTSecret      string
+	JWTExpiry      time.Duration
+	Port           string
+	GoogleClientID string
 }
 
 func Load() (*Config, error) {
@@ -42,10 +43,11 @@ func Load() (*Config, error) {
 	}
 
 	return &Config{
-		MongoURI:  mongoURI,
-		DBName:    dbName,
-		JWTSecret: jwtSecret,
-		JWTExpiry: time.Duration(expiryDays) * 24 * time.Hour,
-		Port:      port,
+		MongoURI:       mongoURI,
+		DBName:         dbName,
+		JWTSecret:      jwtSecret,
+		JWTExpiry:      time.Duration(expiryDays) * 24 * time.Hour,
+		Port:           port,
+		GoogleClientID: os.Getenv("GOOGLE_CLIENT_ID"),
 	}, nil
 }

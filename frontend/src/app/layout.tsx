@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, DM_Serif_Display, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -35,7 +36,10 @@ export default function RootLayout({
       lang="en"
       className={`${dmSans.variable} ${dmSerifDisplay.variable} ${geistMono.variable}`}
     >
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        {children}
+        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
+      </body>
     </html>
   );
 }

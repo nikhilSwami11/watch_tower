@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// handlers
-	authHandler := auth.NewHandler(authRepo, cfg.JWTSecret, cfg.JWTExpiry)
+	authHandler := auth.NewHandler(authRepo, cfg.JWTSecret, cfg.JWTExpiry, cfg.GoogleClientID)
 	groupsHandler := groups.NewHandler(groupsRepo)
 
 	srv := httpserver.New(

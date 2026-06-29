@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"watch-tower/internal/auth"
 	"watch-tower/internal/groups"
@@ -24,6 +25,13 @@ func New(cfg Config, authH *auth.Handler, groupsH *groups.Handler) *http.Server 
 
 	r.Use(chimiddleware.Recoverer) // prevents panics from reaching the client
 	r.Use(middleware.Logger)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	r.Route("/api/v1", func(r chi.Router) {
 		// public — no JWT required

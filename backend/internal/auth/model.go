@@ -10,7 +10,8 @@ type User struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Email        string             `bson:"email" json:"email"`
 	Name         string             `bson:"name" json:"name"`
-	PasswordHash string             `bson:"password_hash" json:"-"`
+	PasswordHash string             `bson:"password_hash,omitempty" json:"-"`
+	GoogleID     string             `bson:"google_id,omitempty" json:"-"`
 	CreatedAt    time.Time          `bson:"created_at" json:"created_at"`
 }
 
@@ -28,4 +29,8 @@ type LoginRequest struct {
 type AuthResponse struct {
 	Token string `json:"token"`
 	User  User   `json:"user"`
+}
+
+type GoogleSignInRequest struct {
+	Credential string `json:"credential" validate:"required"`
 }

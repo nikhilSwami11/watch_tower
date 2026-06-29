@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import WatchTowerLogo from "@/features/groups/components/WatchTowerLogo";
+import GoogleSignInButton from "@/features/auth/components/GoogleSignInButton";
+import { api, setToken } from "@/lib/api";
+import type { AuthResponse } from "@/features/auth/types";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,9 +21,8 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     try {
-      // TODO: wire to api.post("/register", { name, email, password }) when backend ready
-      // const res = await api.post<AuthResponse>("/register", { name, email, password });
-      // setToken(res.token);
+      const res = await api.post<AuthResponse>("/auth/register", { name, email, password });
+      setToken(res.token);
       router.push("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed");
@@ -104,6 +106,17 @@ export default function RegisterPage() {
             {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
+
+        {/* Divider */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
+          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          <span style={{ fontSize: 12, color: "var(--text3)", whiteSpace: "nowrap" }}>or sign up with</span>
+          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <GoogleSignInButton />
+        </div>
 
         <p style={{ marginTop: 22, fontSize: 13, color: "var(--text3)", textAlign: "center" }}>
           Already have an account?{" "}
