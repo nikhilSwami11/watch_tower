@@ -6,10 +6,9 @@ export interface CareerPage {
   company: string;
   added_by: string;
   created_at: string;
-}
-
-export interface PageInteractions {
-  pageId: string;
-  seenBy: string[];   // user IDs
-  appliedBy: string[]; // user IDs
+  viewed_by?: string[];
+  clicked_by?: string[];
+  applied_by?: string[];
+  last_checked_by?: string;
+  last_checked_at?: string;
 }

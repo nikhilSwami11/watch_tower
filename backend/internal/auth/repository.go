@@ -81,3 +81,19 @@ func (r *Repository) LinkGoogleID(ctx context.Context, userID primitive.ObjectID
 	)
 	return err
 }
+
+func (r *Repository) FindManyByIDs(ctx context.Context, ids []primitive.ObjectID) ([]User, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	cur, err := r.col.Find(ctx, bson.M{"_id": bson.M{"$in": ids}})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	var users []User
+	if err := cur.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}

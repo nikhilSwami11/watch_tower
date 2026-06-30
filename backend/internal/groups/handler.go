@@ -9,17 +9,19 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	"watch-tower/internal/auth"
 	"watch-tower/internal/middleware"
 	"watch-tower/internal/respond"
 )
 
 type Handler struct {
 	repo     *Repository
+	authRepo *auth.Repository
 	validate interface{ Struct(any) error }
 }
 
-func NewHandler(repo *Repository) *Handler {
-	return &Handler{repo: repo, validate: respond.NewValidator()}
+func NewHandler(repo *Repository, authRepo *auth.Repository) *Handler {
+	return &Handler{repo: repo, authRepo: authRepo, validate: respond.NewValidator()}
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +131,31 @@ func (h *Handler) ListMembers(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, http.StatusInternalServerError, "could not list members")
 		return
 	}
-	respond.JSON(w, http.StatusOK, map[string]any{"members": members})
+
+	userIDs := make([]primitive.ObjectID, len(members))
+	for i, m := range members {
+		userIDs[i] = m.UserID
+	}
+	users, err := h.authRepo.FindManyByIDs(r.Context(), userIDs)
+	if err != nil {
+		respond.Error(w, http.StatusInternalServerError, "could not load member info")
+		return
+	}
+	userByID := make(map[primitive.ObjectID]*auth.User, len(users))
+	for i := range users {
+		userByID[users[i].ID] = &users[i]
+	}
+
+	enriched := make([]MemberWithUser, len(members))
+	for i, m := range members {
+		enriched[i].GroupMember = m
+		if u, ok := userByID[m.UserID]; ok {
+			enriched[i].Name = u.Name
+			enriched[i].Email = u.Email
+		}
+	}
+
+	respond.JSON(w, http.StatusOK, map[string]any{"members": enriched})
 }
 
 // mustUserID extracts the authenticated user's ObjectID from context.

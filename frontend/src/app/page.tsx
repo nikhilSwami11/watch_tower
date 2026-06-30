@@ -2,10 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import WatchTowerLogo from "@/features/groups/components/WatchTowerLogo";
+import { isLoggedIn } from "@/lib/api";
 
 export default function LandingPage() {
+  const router = useRouter();
   const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    if (isLoggedIn()) router.replace("/dashboard");
+  }, [router]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

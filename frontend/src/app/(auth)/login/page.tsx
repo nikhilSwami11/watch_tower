@@ -5,8 +5,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import WatchTowerLogo from "@/features/groups/components/WatchTowerLogo";
 import GoogleSignInButton from "@/features/auth/components/GoogleSignInButton";
-import { api, setToken } from "@/lib/api";
+import { api, setToken, setUser } from "@/lib/api";
 import type { AuthResponse } from "@/features/auth/types";
+import type { Group } from "@/features/groups/types";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +23,20 @@ export default function LoginPage() {
     try {
       const res = await api.post<AuthResponse>("/auth/login", { email, password });
       setToken(res.token);
+      setUser(res.user);
+
+      const pendingCode = sessionStorage.getItem("wt_pending_invite");
+      if (pendingCode) {
+        sessionStorage.removeItem("wt_pending_invite");
+        try {
+          const joined = await api.post<{ group: Group }>("/groups/join", { invite_code: pendingCode });
+          router.push(`/groups/${joined.group.id}`);
+          return;
+        } catch {
+          // invalid/expired code — fall through to dashboard
+        }
+      }
+
       router.push("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");

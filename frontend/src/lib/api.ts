@@ -11,6 +11,22 @@ export function setToken(token: string) {
 
 export function clearToken() {
   localStorage.removeItem("wt_token");
+  localStorage.removeItem("wt_user");
+}
+
+export function isLoggedIn(): boolean {
+  return !!getToken();
+}
+
+export function setUser(user: { id: string; email: string; name: string }) {
+  localStorage.setItem("wt_user", JSON.stringify(user));
+}
+
+export function getUser(): { id: string; email: string; name: string } | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem("wt_user");
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
 }
 
 async function request<T>(
@@ -25,6 +41,11 @@ async function request<T>(
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
+  if (res.status === 401) {
+    clearToken();
+    if (typeof window !== "undefined") window.location.href = "/login";
+    throw new Error("Unauthorized");
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? `HTTP ${res.status}`);

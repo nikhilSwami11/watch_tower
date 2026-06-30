@@ -25,6 +25,12 @@ type GroupMember struct {
 	Role     string             `bson:"role" json:"role"` // "admin" | "member"
 }
 
+type MemberWithUser struct {
+	GroupMember
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 type CreateGroupRequest struct {
 	Name string `json:"name" validate:"required,min=1,max=100"`
 }

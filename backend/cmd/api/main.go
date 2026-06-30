@@ -12,6 +12,8 @@ import (
 	"github.com/joho/godotenv"
 
 	"watch-tower/internal/auth"
+	"watch-tower/internal/careerpages"
+	"watch-tower/internal/checks"
 	"watch-tower/internal/config"
 	"watch-tower/internal/db"
 	"watch-tower/internal/groups"
@@ -39,6 +41,8 @@ func main() {
 	// repositories
 	authRepo := auth.NewRepository(database)
 	groupsRepo := groups.NewRepository(database)
+	careerPagesRepo := careerpages.NewRepository(database)
+	checksRepo := checks.NewRepository(database)
 
 	// ensure indexes exist (idempotent — safe to call on every startup)
 	idxCtx, idxCancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -51,15 +55,27 @@ func main() {
 		slog.Error("failed to ensure groups indexes", "err", err)
 		os.Exit(1)
 	}
+	if err := careerPagesRepo.EnsureIndexes(idxCtx); err != nil {
+		slog.Error("failed to ensure career pages indexes", "err", err)
+		os.Exit(1)
+	}
+	if err := checksRepo.EnsureIndexes(idxCtx); err != nil {
+		slog.Error("failed to ensure checks indexes", "err", err)
+		os.Exit(1)
+	}
 
 	// handlers
 	authHandler := auth.NewHandler(authRepo, cfg.JWTSecret, cfg.JWTExpiry, cfg.GoogleClientID)
-	groupsHandler := groups.NewHandler(groupsRepo)
+	groupsHandler := groups.NewHandler(groupsRepo, authRepo)
+	careerPagesHandler := careerpages.NewHandler(careerPagesRepo, checksRepo, groupsRepo)
+	checksHandler := checks.NewHandler(checksRepo, groupsRepo)
 
 	srv := httpserver.New(
-		httpserver.Config{Port: cfg.Port, JWTSecret: cfg.JWTSecret},
+		httpserver.Config{Port: cfg.Port, JWTSecret: cfg.JWTSecret, AllowedOrigin: cfg.AllowedOrigin},
 		authHandler,
 		groupsHandler,
+		careerPagesHandler,
+		checksHandler,
 	)
 
 	go func() {

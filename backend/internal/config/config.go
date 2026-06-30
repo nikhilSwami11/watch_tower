@@ -14,6 +14,7 @@ type Config struct {
 	JWTExpiry      time.Duration
 	Port           string
 	GoogleClientID string
+	AllowedOrigin  string
 }
 
 func Load() (*Config, error) {
@@ -42,6 +43,11 @@ func Load() (*Config, error) {
 		}
 	}
 
+	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "http://localhost:3000"
+	}
+
 	return &Config{
 		MongoURI:       mongoURI,
 		DBName:         dbName,
@@ -49,5 +55,6 @@ func Load() (*Config, error) {
 		JWTExpiry:      time.Duration(expiryDays) * 24 * time.Hour,
 		Port:           port,
 		GoogleClientID: os.Getenv("GOOGLE_CLIENT_ID"),
+		AllowedOrigin:  allowedOrigin,
 	}, nil
 }
